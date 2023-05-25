@@ -3,34 +3,41 @@
   become: true
   vars:
    site_content: "<html><body><h1>Voici mon site</h1></body></html>"
+    domains:
+     - front.hei.school
+     - back.hei.school
+     - api.hei.school
   tasks:
-   - name: générer les noms de domaine à partir d'un script
-     script: script/script.js
-     register: script_out
-
    - name: Créer les répertoires des sites
      file:
-       path: "var/www/{{ item }}"
+       path: "/var/www/{{ item }}"
        state: directory
-     loop: {{ script_out.stdout_lines }}
+     loop: "{{ domains }}"
 
    - name: Copier les contenus du site
      copy:
-       content: {{ site_content }}
-       dest: "var/www/{{ item }}/index.html"
-     loop: {{ script_out.stdout_lines }}
+       content: "{{ site_content }}"
+       dest: "/var/www/{{ item }}/index.html"
+     loop: "{{ domains }}"
 
    - name: Générer les fichiers de configurations Apache2
      template:
-       src: "ansible/virtual_host.conf.j2"
-       dest: "/etc/apache2/sites-available/{{ item }}.conf"
-     loop: {{ script_out.stdout_lines }}
+       src: "virtual_host.conf.j2"
+       dest: "/etc/apache2/sites-available/{{ item | regex_replace('\\.conf$', '') }}.conf"
+     loop: "{{ domains }}"
+     notify: Reload Apache2
+   - name: Activer les sites Apache2
+     file:
+       src: "/etc/apache2/sites-available/{{ item }}.conf"
+       dest: "/etc/apache2/sites-enabled/{{ item }}.conf"
+       state: link
+     loop: "{{ domains }}"
+     notify: Reload Apache2
+   - name: Activer les sites Apache2 avec a2ensite
+     command: a2ensite {{ item }}
+     loop: "{{ domains }}"
      notify: Reload Apache2
 
-   - name: Activer les sites Apache2
-      ommand: a2ensite {{ item }}.conf
-      loop: "{{ generated_domains.stdout_lines }}"
-      notify: Reload Apache2
 
   handlers:
     - name: Reload Apache2

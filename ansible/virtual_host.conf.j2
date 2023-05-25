@@ -2,7 +2,7 @@
     ServerName {{ item }}
     DocumentRoot /var/www/{{ item }}
 
-    <Directory /var/www/{{ domain }}>
+    <Directory /var/www/{{ item }}>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
