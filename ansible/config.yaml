@@ -2,7 +2,6 @@
   hosts: localhost
   become: true
   vars:
-   site_content: "<html><body><h1>Voici mon site</h1></body></html>"
     domains:
      - front.hei.school
      - back.hei.school
@@ -14,10 +13,11 @@
        state: directory
      loop: "{{ domains }}"
 
-   - name: Copier les contenus du site
-     copy:
-       content: "{{ site_content }}"
+   - name: Générer les contenus des sites
+     lineinfile:
        dest: "/var/www/{{ item }}/index.html"
+       insertafter: <body>
+       line: "<h1> Welcome in {{ item }} </h1>"
      loop: "{{ domains }}"
 
    - name: Générer les fichiers de configurations Apache2
@@ -26,6 +26,7 @@
        dest: "/etc/apache2/sites-available/{{ item | regex_replace('\\.conf$', '') }}.conf"
      loop: "{{ domains }}"
      notify: Reload Apache2
+     
    - name: Activer les sites Apache2
      file:
        src: "/etc/apache2/sites-available/{{ item }}.conf"
@@ -33,11 +34,18 @@
        state: link
      loop: "{{ domains }}"
      notify: Reload Apache2
-   - name: Activer les sites Apache2 avec a2ensite
-     command: a2ensite {{ item }}
-     loop: "{{ domains }}"
+
+    - name: Désactiver le site par défaut Apache2
+     command: a2dissite 000-default.conf
+     args:
+       chdir: "/etc/apache2/sites-available/"
      notify: Reload Apache2
 
+   - name: Ajouter les noms des hôtes
+     lineinfile:
+       dest : "/etc/hosts"
+       line: "192.168.244.129 {{ item }}"
+     loop: "{{ domains }}"
 
   handlers:
     - name: Reload Apache2
