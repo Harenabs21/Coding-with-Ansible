@@ -7,6 +7,16 @@
      - back.hei.school
      - api.hei.school
   tasks:
+   - name: Install apache2
+      apt:
+        name: ['apache2']
+        state: present
+
+   - name: Start apache2
+      service:
+        name: apache2
+        state: started
+        enabled: yes
    - name: Créer les répertoires des sites
      file:
        path: "/var/www/{{ item }}"
@@ -26,7 +36,7 @@
        dest: "/etc/apache2/sites-available/{{ item | regex_replace('\\.conf$', '') }}.conf"
      loop: "{{ domains }}"
      notify: Reload Apache2
-     
+
    - name: Activer les sites Apache2
      file:
        src: "/etc/apache2/sites-available/{{ item }}.conf"

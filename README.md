@@ -27,3 +27,17 @@ ansible 2.10.8
 > NOTE: I use debian for this tutorial, so I used the `apt`. There is another way for installing ansible that you can see at [Documentation for ansible](https://docs.ansible.com/)
 
 See you for the next step!
+
+## Running the ansible playbook
+Let me introduce all tasks that the `config.yaml` do:
+  - Install `Apache2` if you don't have it yet
+  - Create the directory for the websites
+  - Create the data of the website
+  - Create the configuration wit the Apache2 service
+  - Enable the sites and dissite the default website of apache2 
+  - Add serversname in hosts file 
+
+To run the playbook, you just have to run the command below:
+```sh
+sudo ansible-playbook path/directory/file.yaml
+```
